@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "echo 'No build step required'",
+    "deploy": "echo 'Deploying to Railway...'"
   },
   "keywords": ["email", "eml", "viewer", "html", "attachments", "parser"],
   "author": "Email Viewer",

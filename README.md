@@ -14,6 +14,8 @@ A production-ready email .eml file viewer with HTML rendering and attachment sup
 
 ## Quick Start
 
+### Local Development
+
 1. **Install dependencies:**
    ```bash
    npm install
@@ -31,6 +33,26 @@ A production-ready email .eml file viewer with HTML rendering and attachment sup
 
 4. **View the email:**
    Open the returned `viewUrl` in your browser.
+
+### Railway Deployment
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template)
+
+**Manual Deployment:**
+1. Install Railway CLI: `npm install -g @railway/cli`
+2. Login: `railway login`
+3. Initialize: `railway init`
+4. Deploy: `railway up`
+
+**Environment Variables:**
+- `NODE_ENV=production`
+- `ALLOWED_ORIGINS=https://yourdomain.com` (optional, for CORS)
+
+**Production Usage:**
+```bash
+# Replace with your Railway URL
+curl -X POST -F "file=@your-email.eml" https://your-app.railway.app/upload
+```
 
 ## API Endpoints
 
@@ -58,7 +80,20 @@ View a processed email.
 - HTML page with email content, attachments, and interactive viewer
 
 ### GET /
-Upload page interface.
+API documentation and status.
+
+### GET /health
+Health check endpoint for monitoring.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-01-06T18:30:00.000Z",
+  "environment": "production",
+  "uptime": 123.45
+}
+```
 
 ## Integration Examples
 

@@ -224,9 +224,17 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: NODE_ENV === 'production' 
+    ? process.env.ALLOWED_ORIGINS?.split(',') || ['https://emailviewer-production.up.railway.app']
+    : true,
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // In-memory storage for emails
@@ -250,6 +258,16 @@ const upload = multer({
 });
 
 // No static files needed - API only
+
+// Health check endpoint for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    uptime: process.uptime()
+  });
+});
 
 // Upload endpoint
 app.post('/upload', upload.single('file'), (req, res) => {
@@ -674,5 +692,9 @@ window.open(result.viewUrl, '_blank');
 
 app.listen(PORT, () => {
   console.log(`Email viewer server running on port ${PORT}`);
-  console.log(`Visit: http://localhost:${PORT}`);
+  if (NODE_ENV === 'production') {
+    console.log(`Production server is live!`);
+  } else {
+    console.log(`Visit: http://localhost:${PORT}`);
+  }
 });
