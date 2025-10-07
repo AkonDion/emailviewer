@@ -240,8 +240,8 @@ app.use(express.json());
 
 // API Token Authentication Middleware
 const authenticateToken = (req, res, next) => {
-  // Skip authentication for health check and root endpoint
-  if (req.path === '/health' || req.path === '/') {
+  // Skip authentication for health check, root endpoint, and view endpoint
+  if (req.path === '/health' || req.path === '/' || req.path.startsWith('/view/')) {
     return next();
   }
   
@@ -348,7 +348,7 @@ app.post('/upload', authenticateToken, upload.single('file'), (req, res) => {
 
 
 // View email endpoint
-app.get('/view/:id', authenticateToken, (req, res) => {
+app.get('/view/:id', (req, res) => {
   const emailId = req.params.id;
   const emailData = emailStore.get(emailId);
   
