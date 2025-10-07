@@ -347,6 +347,27 @@ app.post('/upload', authenticateToken, upload.single('file'), (req, res) => {
 });
 
 
+// Download attachment endpoint
+app.get('/download/:emailId/:attachmentIndex', (req, res) => {
+  const { emailId, attachmentIndex } = req.params;
+  const emailData = emailStore.get(emailId);
+  
+  if (!emailData) {
+    return res.status(404).send('Email not found');
+  }
+  
+  const attachment = emailData.attachments[parseInt(attachmentIndex)];
+  if (!attachment) {
+    return res.status(404).send('Attachment not found');
+  }
+  
+  const buffer = Buffer.from(attachment.content, 'base64');
+  res.setHeader('Content-Type', attachment.contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename}"`);
+  res.setHeader('Content-Length', buffer.length);
+  res.send(buffer);
+});
+
 // View email endpoint
 app.get('/view/:id', (req, res) => {
   const emailId = req.params.id;
@@ -643,9 +664,8 @@ app.get('/view/:id', (req, res) => {
                     <div class="email-field">
                         <label>Attachments</label>
                         <div class="attachments-list">
-                            ${emailData.attachments.map(attachment => `
-                                <a href="data:${attachment.contentType};base64,${attachment.content}" 
-                                   download="${escapeHtml(attachment.filename)}" 
+                            ${emailData.attachments.map((attachment, index) => `
+                                <a href="/download/${emailId}/${index}" 
                                    class="attachment-link">
                                     ${escapeHtml(attachment.filename)} (${formatFileSize(attachment.size)})
                                 </a>
