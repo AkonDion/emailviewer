@@ -46,20 +46,29 @@ A production-ready email .eml file viewer with HTML rendering and attachment sup
 
 **Environment Variables:**
 - `NODE_ENV=production`
+- `API_TOKEN=your-secure-api-token-here` (required for API access)
 - `ALLOWED_ORIGINS=https://yourdomain.com` (optional, for CORS)
 
 **Production Usage:**
 ```bash
-# Replace with your Railway URL
-curl -X POST -F "file=@your-email.eml" https://your-app.railway.app/upload
+# Replace with your Railway URL and API token
+curl -X POST -H "Authorization: Bearer YOUR_TOKEN" -F "file=@your-email.eml" https://your-app.railway.app/upload
 ```
 
 ## API Endpoints
+
+### Authentication
+All API endpoints (except `/` and `/health`) require Bearer token authentication:
+
+```bash
+Authorization: Bearer YOUR_API_TOKEN
+```
 
 ### POST /upload
 Upload a .eml file for viewing.
 
 **Request:**
+- Headers: `Authorization: Bearer YOUR_TOKEN`
 - Content-Type: `multipart/form-data`
 - Field: `file` (the .eml file)
 
@@ -75,6 +84,10 @@ Upload a .eml file for viewing.
 
 ### GET /view/:id
 View a processed email.
+
+**Request:**
+- Headers: `Authorization: Bearer YOUR_TOKEN`
+- Parameters: `id` (Email ID from upload response)
 
 **Response:**
 - HTML page with email content, attachments, and interactive viewer
@@ -101,11 +114,12 @@ Health check endpoint for monitoring.
 Use the HTTP Request node with:
 - **Method:** POST
 - **URL:** `http://localhost:3000/upload`
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
 - **Body:** Form-Data with `file` field
 
 ### cURL
 ```bash
-curl -X POST -F "file=@email.eml" http://localhost:3000/upload
+curl -X POST -H "Authorization: Bearer YOUR_TOKEN" -F "file=@email.eml" http://localhost:3000/upload
 ```
 
 ### JavaScript/Node.js
@@ -119,6 +133,9 @@ form.append('file', fs.createReadStream('email.eml'));
 
 const response = await fetch('http://localhost:3000/upload', {
   method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN'
+  },
   body: form
 });
 

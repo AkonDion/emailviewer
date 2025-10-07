@@ -225,6 +225,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const API_TOKEN = process.env.API_TOKEN || 'dev-token-123';
 
 // Middleware
 const corsOptions = {
@@ -236,6 +237,33 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// API Token Authentication Middleware
+const authenticateToken = (req, res, next) => {
+  // Skip authentication for health check and root endpoint
+  if (req.path === '/health' || req.path === '/') {
+    return next();
+  }
+  
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ 
+      error: 'Access denied. API token required.',
+      hint: 'Include Authorization header: Bearer YOUR_TOKEN'
+    });
+  }
+  
+  if (token !== API_TOKEN) {
+    return res.status(403).json({ 
+      error: 'Invalid API token.',
+      hint: 'Check your API token and try again'
+    });
+  }
+  
+  next();
+};
 
 // In-memory storage for emails
 const emailStore = new Map();
@@ -270,7 +298,7 @@ app.get('/health', (req, res) => {
 });
 
 // Upload endpoint
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload', authenticateToken, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
@@ -320,7 +348,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
 
 
 // View email endpoint
-app.get('/view/:id', (req, res) => {
+app.get('/view/:id', authenticateToken, (req, res) => {
   const emailId = req.params.id;
   const emailData = emailStore.get(emailId);
   
@@ -658,9 +686,15 @@ app.get('/', (req, res) => {
     name: 'Email Viewer API',
     version: '1.0.0',
     description: 'A production-ready email .eml file viewer with HTML rendering and attachment support',
+    authentication: {
+      type: 'Bearer Token',
+      header: 'Authorization: Bearer YOUR_API_TOKEN',
+      note: 'Required for all endpoints except / and /health'
+    },
     endpoints: {
       'POST /upload': {
         description: 'Upload a .eml file for viewing',
+        authentication: 'Required',
         contentType: 'multipart/form-data',
         field: 'file (the .eml file)',
         response: {
@@ -672,17 +706,22 @@ app.get('/', (req, res) => {
       },
       'GET /view/:id': {
         description: 'View a processed email with HTML rendering and attachments',
+        authentication: 'Required',
         parameters: {
           id: 'Email ID returned from upload'
         }
       }
     },
     usage: {
-      curl: 'curl -X POST -F "file=@email.eml" http://localhost:3000/upload',
+      curl: 'curl -X POST -H "Authorization: Bearer YOUR_TOKEN" -F "file=@email.eml" http://localhost:3000/upload',
       javascript: `
 const formData = new FormData();
 formData.append('file', file);
-const response = await fetch('/upload', { method: 'POST', body: formData });
+const response = await fetch('/upload', { 
+  method: 'POST', 
+  headers: { 'Authorization': 'Bearer YOUR_TOKEN' },
+  body: formData 
+});
 const result = await response.json();
 window.open(result.viewUrl, '_blank');
       `
