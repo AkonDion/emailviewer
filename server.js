@@ -225,7 +225,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const API_TOKEN = process.env.API_TOKEN || 'dev-token-123';
+const API_TOKEN = process.env.API_TOKEN || 'b5f8266764783f93d5a735ff11898ec657888047f97998c076a6a6fb3a694118';
 
 // Middleware
 const corsOptions = {
