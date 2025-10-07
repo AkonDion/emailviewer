@@ -468,6 +468,19 @@ app.get('/view/:id', (req, res) => {
             font-size: 0.95rem;
             font-weight: 500;
         }
+        .attachments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .attachment-link {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .attachment-link:hover {
+            text-decoration: underline;
+        }
         .content-tabs {
             display: flex;
             border-bottom: 2px solid #e1e5e9;
@@ -626,6 +639,20 @@ app.get('/view/:id', (req, res) => {
                         <label>Date</label>
                         <span>${new Date(emailData.date).toLocaleString()}</span>
                     </div>
+                    ${emailData.attachments && emailData.attachments.length > 0 ? `
+                    <div class="email-field">
+                        <label>Attachments</label>
+                        <div class="attachments-list">
+                            ${emailData.attachments.map(attachment => `
+                                <a href="data:${attachment.contentType};base64,${attachment.content}" 
+                                   download="${escapeHtml(attachment.filename)}" 
+                                   class="attachment-link">
+                                    ${escapeHtml(attachment.filename)} (${formatFileSize(attachment.size)})
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
